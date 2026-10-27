@@ -14,7 +14,7 @@ BEGIN TRY
 
         PRINT '--> Iniciando actualización de registros de requerimientos...';
 
-        -- Actualizamos usando el nombre correcto de la columna (FECHA_DE_SOLICITUD)
+        -- Actualizamos usando el nombre correcto de la columna 
      UPDATE dbo.REQUERIMIENTOS
 
          SET DECISION_DE_RRHH = 'APROBADO'
@@ -39,3 +39,39 @@ BEGIN CATCH
 
     THROW;
 END CATCH;
+
+
+-- ==========================================================
+-- Procedimiento para contar solicitudes mensuales por puesto
+-- ==========================================================
+GO
+
+IF OBJECT_ID('sp_ContarSolicitudesPorPuestoMes', 'P') IS NOT NULL
+    DROP PROCEDURE sp_ContarSolicitudesPorPuestoMes;
+GO
+
+CREATE PROCEDURE sp_ContarSolicitudesPorPuestoMes
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        DATENAME(MONTH, FECHA_DE_SOLICITUD) AS Mes,
+        YEAR(FECHA_DE_SOLICITUD) AS Anio,
+        PUESTO AS Puesto, -- (Si tu columna de puesto se llama diferente, ajústala aquí)
+        COUNT(1) AS TotalSolicitudes
+    FROM 
+        dbo.REQUERIMIENTOS
+    GROUP BY 
+        YEAR(FECHA_DE_SOLICITUD),
+        DATENAME(MONTH, FECHA_DE_SOLICITUD),
+        PUESTO
+    ORDER BY 
+        Anio DESC, 
+        Mes DESC, 
+        TotalSolicitudes DESC;
+END;
+GO
+
+PRINT '--> [EXITO] Store Procedure sp_ContarSolicitudesPorPuestoMes creado correctamente.';
+GO
